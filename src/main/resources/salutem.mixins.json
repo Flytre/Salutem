@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.flytre.salutem.mixin",
+  "compatibilityLevel": "JAVA_14",
+  "client": [
+    "WorldRendererMixin", "RenderLayerAccessor", "GameRendererMixin", "LivingEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
