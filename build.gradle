@@ -25,7 +25,7 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modCompile 'com.github.Flytre:FlytreLib:bf7d3a5'
+    modImplementation 'com.github.Flytre:FlytreLib:bf7d3a5'
 }
 
 processResources {
