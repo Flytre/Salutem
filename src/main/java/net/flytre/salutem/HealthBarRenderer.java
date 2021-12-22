@@ -53,7 +53,7 @@ public class HealthBarRenderer {
             if (capturedFrustum != null) {
                 frustum = capturedFrustum;
             } else {
-                frustum = new Frustum(matrices.peek().getModel(), projection);
+                frustum = new Frustum(matrices.peek().getPositionMatrix(), projection);
                 frustum.setPosition(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
             }
             StreamSupport
@@ -116,6 +116,9 @@ public class HealthBarRenderer {
                 if (entity.getMaxHealth() <= 0.0F)
                     break processing;
 
+                if (!config.showOnMaxHealthEnemies && entity.getHealth() == entity.getMaxHealth())
+                    break processing;
+
                 double x = original.prevX + (original.getX() - original.prevX) * partialTicks;
                 double y = original.prevY + (original.getY() - original.prevY) * partialTicks;
                 double z = original.prevZ + (original.getZ() - original.prevZ) * partialTicks;
@@ -171,9 +174,9 @@ public class HealthBarRenderer {
 
         float healthSize = size * (entity.getHealth() / entity.getMaxHealth());
         MatrixStack.Entry entry = matrices.peek();
-        Matrix4f modelViewMatrix = entry.getModel();
+        Matrix4f modelViewMatrix = entry.getPositionMatrix();
         Vec3f normal = new Vec3f(0.0F, 1.0F, 0.0F);
-        normal.transform(entry.getNormal());
+        normal.transform(entry.getNormalMatrix());
         VertexConsumer buffer = immediate.getBuffer(SalutemRenderPhase.getHealthBarLayer(SalutemRenderPhase.HEALTH_BAR_TEXTURE)); // VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL
         float padding = config.backgroundPadding;
         int backgroundHeight = config.backgroundHeight;
@@ -237,14 +240,14 @@ public class HealthBarRenderer {
             int black = 0x000000;
             matrices.translate(-size, -4.5F, 0.0F);
             matrices.scale(textScale, textScale, textScale);
-            modelViewMatrix = matrices.peek().getModel();
+            modelViewMatrix = matrices.peek().getPositionMatrix();
             client.textRenderer.draw(name, 0, 0, white, false, modelViewMatrix, immediate, false, black, light);
 
             float s1 = 0.75F;
             matrices.push();
             {
                 matrices.scale(s1, s1, s1);
-                modelViewMatrix = matrices.peek().getModel();
+                modelViewMatrix = matrices.peek().getPositionMatrix();
                 int textHeight = config.hpTextHeight;
                 String maxHpString = String.format("%.2f", entity.getMaxHealth()).replaceAll("\\.00$", "");
                 String hpString = String.format("%.2f", health).replaceAll("\\.00$", "");

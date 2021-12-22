@@ -109,6 +109,9 @@ public class SalutemConfig {
     @SerializedName("enable_debug_info")
     public boolean enableDebugInfo = false;
 
+    @SerializedName("show_on_max_health_enemies")
+    public boolean showOnMaxHealthEnemies = true;
+
     public void toggleDraw() {
         draw = !draw;
     }
@@ -116,6 +119,6 @@ public class SalutemConfig {
     public enum ColorStyle {
         @SerializedName("type_of_mob") MOB_TYPE,
         @SerializedName("damage_animated") RECENT_DAMAGE,
-        @SerializedName("health_percent") HEALTH_PERCENT;
+        @SerializedName("health_percent") HEALTH_PERCENT
     }
 }
