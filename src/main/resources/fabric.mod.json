@@ -1,26 +1,30 @@
 {
   "schemaVersion": 1,
-  "id": "salutem",
-  "version": "${version}",
-  "name": "Salutem",
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
   "environment": "client",
-  "description": "Adds simple healthbars to minecraft!",
-  "authors": ["Flytre"],
+  "authors": [
+    "${mod_author}"
+  ],
   "contact": {
-    "website": "https://www.flytre.net"
+    "homepage": "${mod_homepage}",
+    "sources": "${mod_source}",
+    "issues": "${mod_issues}"
   },
-  "license": "Custom License",
-  "icon": "assets/salutem/icon.png",
+  "license": "${mod_license}",
+  "icon": "icon.png",
   "entrypoints": {
     "client": ["net.flytre.salutem.Salutem"]
   },
   "mixins": [
-    "salutem.mixins.json"
+    "${mod_id}.mixins.json"
   ],
-  "accessWidener": "salutem.accessWidener",
+  "accessWidener": "${mod_id}.accessWidener",
   "depends": {
     "fabricloader": ">=0.10.8",
-    "minecraft": "1.18.*",
-    "flytre_lib" : ">=1.4.1"
+    "minecraft": "1.18.x",
+    "flytre_lib": ">=${lib_version}"
   }
 }

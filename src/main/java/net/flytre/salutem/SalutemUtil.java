@@ -1,5 +1,6 @@
 package net.flytre.salutem;
 
+import net.flytre.salutem.config.SalutemConfig;
 import net.minecraft.entity.EntityGroup;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.Monster;

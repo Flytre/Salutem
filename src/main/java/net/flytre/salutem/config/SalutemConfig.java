@@ -1,4 +1,4 @@
-package net.flytre.salutem;
+package net.flytre.salutem.config;
 
 import com.google.gson.annotations.SerializedName;
 import net.flytre.flytre_lib.api.config.annotation.Description;

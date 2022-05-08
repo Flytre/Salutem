@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.flytre.flytre_lib.api.base.util.EntityUtils;
 import net.flytre.flytre_lib.api.config.reference.entity.ConfigEntity;
+import net.flytre.salutem.config.SalutemConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;

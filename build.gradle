@@ -1,6 +1,21 @@
+import net.fabricmc.loom.task.RemapJarTask
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.2.0'
+    }
+}
+
+
 plugins {
     id 'fabric-loom' version '0.10-SNAPSHOT'
     id 'maven-publish'
+    id 'net.darkhax.curseforgegradle' version '1.0.7'
+    id 'net.darkhax.tweedle' version '1.0.5'
+    id 'idea'
 }
 
 
@@ -8,17 +23,21 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 
-archivesBaseName = project.archives_base_name
-version = project.mod_version
+archivesBaseName = "${mod_id}-${minecraft_version}-${mod_version}-fabric"
 group = project.maven_group
 
 loom {
-    accessWidenerPath = file("src/main/resources/salutem.accessWidener")
+    accessWidenerPath = file("src/main/resources/${mod_id}.accessWidener")
 }
 
 
 repositories {
-    maven { url "https://jitpack.io" }
+    mavenLocal()
+
+    maven {
+        name = 'Mod Menu'
+        url = 'https://maven.terraformersmc.com/releases/'
+    }
 }
 
 dependencies {
@@ -26,14 +45,19 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    modImplementation "com.github.Flytre:FlytreLib:${project.lib_version}"
+    modImplementation("net.flytre.flytre_lib:flytre_lib-${minecraft_version}-fabric:${lib_version}") {
+        exclude group: "me.shedaniel"
+    }
+
+    modRuntimeOnly "com.terraformersmc:modmenu:${modmenu_version}"
+
+
 }
 
 processResources {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
+    def buildProps = project.properties.clone()
+    filesMatching(['fabric.mod.json', 'pack.mcmeta', "${mod_id}.mixins.json".toString()]) {
+        expand buildProps
     }
 }
 
@@ -46,21 +70,111 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-jar {
-    from "LICENSE"
-}
 
-// configure the maven publication
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
+task buildObfuscatedJarFabric() {
+
+    task preObfuscation(type: Exec) {
+        commandLine "java", "-cp", "proguard/mod-obfuscator-1.0.0-all.jar", "net.flytre.mod_obfuscator.PreObfuscationTasks", "build/libs", "${archivesBaseName}", "proguard","${mod_id}"
+    }
+
+
+    task obfuscateStep1(type: proguard.gradle.ProGuardTask) {
+        outputs.upToDateWhen { false }
+        doFirst {
+            injars("build/libs/${archivesBaseName}-pre.jar")
+            outjars("build/libs/${archivesBaseName}-obfus.jar")
+
+            configurations.runtimeClasspath.each {
+                libraryjars(it.path + "")
+            }
+
+            configuration("proguard/proguard.cfg")
+            repackageclasses("net.flytre.${mod_id}")
+            printmapping("proguard/mappings/${archivesBaseName}.mappings")
         }
     }
 
-    // select the repositories you want to publish to
-    repositories {
-        // uncomment to publish to the local maven
-        // mavenLocal()
+    task obfuscateStep2(type: proguard.gradle.ProGuardTask) {
+        outputs.upToDateWhen { false }
+        doFirst {
+            injars("build/libs/${archivesBaseName}-obfus.jar")
+            outjars("build/libs/${archivesBaseName}-obfus2.jar")
+
+            configurations.runtimeClasspath.each {
+                libraryjars(it.path + "")
+            }
+
+            configuration("proguard/proguard2.cfg")
+            repackageclasses("net.flytre.${mod_id}.mixin")
+            printmapping("proguard/mappings/${archivesBaseName}-mixin.mappings")
+            obfuscationdictionary("proguard/mixin_dictionary.txt")
+        }
+    }
+
+    task postObfuscation(type: Exec) {
+        commandLine "java", "-cp", "proguard/mod-obfuscator-1.0.0-all.jar", "net.flytre.mod_obfuscator.PostObfuscationTasks", "build/libs", "${archivesBaseName}"
+    }
+
+
+    task remap(type: RemapJarTask) {
+        input = file("build/libs/${archivesBaseName}-post.jar")
+        addNestedDependencies = false
+        remapAccessWidener = true;
+    }
+
+    task postRemap(type: Exec) {
+        commandLine "java", "-cp", "proguard/mod-obfuscator-1.0.0-all.jar", "net.flytre.mod_obfuscator.PostRemappingTasks", "build/libs", "${archivesBaseName}"
+    }
+
+    dependsOn 'build'
+    dependsOn 'preObfuscation'
+    dependsOn 'obfuscateStep1'
+    dependsOn 'obfuscateStep2'
+    dependsOn 'postObfuscation'
+    dependsOn 'remap'
+    dependsOn 'postRemap'
+
+    tasks.findByName('preObfuscation').mustRunAfter 'build'
+    tasks.findByName('obfuscateStep1').mustRunAfter 'preObfuscation'
+    tasks.findByName('obfuscateStep2').mustRunAfter 'obfuscateStep1'
+    tasks.findByName('postObfuscation').mustRunAfter 'obfuscateStep2'
+    tasks.findByName('remap').mustRunAfter 'postObfuscation'
+    tasks.findByName('postRemap').mustRunAfter 'remap'
+
+}
+
+def auth = new Properties()
+try {
+    file("auth.properties").withInputStream { auth.load(it) }
+} catch (ignored) {
+    file("auth_fallback.properties").withInputStream { auth.load(it) }
+}
+
+// CurseForge Publishing
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+
+    apiToken = auth.getProperty("curseforge_token")
+
+    def mainFile = upload(curse_project, file("${project.buildDir}/libs/${archivesBaseName}.jar"))
+    mainFile.changelogType = 'markdown'
+    mainFile.addJavaVersion('Java 17')
+    mainFile.addJavaVersion('Java 18')
+    mainFile.releaseType = "release"
+    mainFile.addModLoader('Fabric')
+    mainFile.addRelation("lib","requiredDependency")
+    mainFile.addRelation("fabric-api","requiredDependency")
+
+
+    def versions = supported_versions.split(",")
+    versions.each(v -> {
+        mainFile.addGameVersion(v)
+    })
+
+    doLast {
+
+        if (project.hasProperty('mod_homepage')) {
+
+            project.ext.curse_file_url = "${mod_homepage}/files/${mainFile.curseFileId}"
+        }
     }
 }
