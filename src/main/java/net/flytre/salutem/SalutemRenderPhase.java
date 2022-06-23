@@ -17,7 +17,7 @@ public class SalutemRenderPhase extends RenderPhase {
 
     public static final Identifier HEALTH_BAR_TEXTURE = new Identifier("salutem", "textures/ui/health_bar_texture.png");
 
-    public static final VertexFormat POSITION_TEXTURE_COLOR_NORMAL_LIGHT = new VertexFormat(ImmutableMap.<String, VertexFormatElement>builder().put("Position", POSITION_ELEMENT).put("UV0", TEXTURE_0_ELEMENT).put("Color", COLOR_ELEMENT).put("Normal", NORMAL_ELEMENT).put("UV2", LIGHT_ELEMENT).put("Padding", PADDING_ELEMENT).build());
+    public static final VertexFormat POSITION_TEXTURE_COLOR_NORMAL_LIGHT = new VertexFormat(ImmutableMap.<String, VertexFormatElement>builder().put("Position", POSITION_ELEMENT).put("UV0", TEXTURE_ELEMENT).put("Color", COLOR_ELEMENT).put("Normal", NORMAL_ELEMENT).put("UV2", LIGHT_ELEMENT).put("Padding", PADDING_ELEMENT).build());
     private static net.minecraft.client.render.Shader SHADER_INTERNAL_HEALTHBAR;
     private static final RenderPhase.Shader SHADER_HEALTH_BAR = new RenderPhase.Shader(() -> SHADER_INTERNAL_HEALTHBAR);
 

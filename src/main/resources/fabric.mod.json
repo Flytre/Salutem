@@ -24,7 +24,7 @@
   "accessWidener": "${mod_id}.accessWidener",
   "depends": {
     "fabricloader": ">=0.10.8",
-    "minecraft": "1.18.x",
+    "minecraft": "1.19.x",
     "flytre_lib": ">=${lib_version}"
   }
 }
